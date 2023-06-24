@@ -21,6 +21,16 @@
              - "{{ apache_package }}" # this is a variable from the inventory file
              - "{{ php_package }}"
         state: latest
+
+  - name: Copy index html file for site
+    tags: apache,apache2,httpd,ubuntu
+    copy:
+        src: my_index.html ## NOte: the file 'my_index.html' exists under the dir named "files", but we don't add it in the 'src' because it is assumed
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: 0644
+    when: ansible_distribution == "Ubuntu"
 # when: ansible_distribution == "Ubuntu"
 # when: ansible_distribution in ["Debian","Ubuntu"] # for multi-dist types
 
@@ -33,6 +43,7 @@
         name: mariadb-server
         state: latest
     when: ansible_distribution == "Ubuntu"
+
 
 - hosts: file_servers
   become: true
