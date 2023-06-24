@@ -1,6 +1,6 @@
 ---
 - hosts: all
-  become: true
+  become: true # to become a root user
   pre_tasks: # we can force some tasks to run before other ones with this option
   - name: Install updates (Ubuntu)
     tags: always # this tags is used to always run the play
@@ -9,6 +9,22 @@
       upgrade: dist
       update_cache: yes
 
+- hosts: workstations # this will install terraform in the workstation vm (i.e sort of my local machine )
+# NB: I must copy the ansible public key to the localvm ( ssh-copy-id -i ~/.ssh/ansible.pub mrb@vm-ubuntu-workstation)
+  become: true
+  tasks:
+  - name: Install unzip
+    package:
+        name: unzip
+
+  - name: Install terraform
+    unarchive: # this is why we installed unzip !
+        remote_src: yes
+        src: https://releases.hashicorp.com/terraform/0.12.28/terraform_0.12.28_linux_amd64.zip
+        dest: /usr/local/bin
+        owner: root
+        group: root
+        mode: 0755
 
 - hosts: web_servers # value from the inventory file
   become: true

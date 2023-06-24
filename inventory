@@ -1,8 +1,11 @@
 [db_servers]
-rached@vm-ubuntu-db-server apache_package=apache2 php_package=libapache2-mod-php
+rached@vm-ubuntu-db-server
 
 [web_servers]
 rached@vm-ubuntu-web-server apache_package=apache2 php_package=libapache2-mod-php
 
 [file_servers]
-rached@vm-ubuntu-db-server apache_package=apache2 php_package=libapache2-mod-php
+rached@vm-ubuntu-db-server
+
+[workstations]
+mrb@vm-ubuntu-workstation
