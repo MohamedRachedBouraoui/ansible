@@ -1,4 +1,4 @@
-# vm 
+# VMs
  * add user to sudoers:
 	cmds:
 	- visudo
@@ -27,13 +27,16 @@
 	cmd: 
 	  - sudo nano /etc/hosts  
 	  - add the vm ip  and a hostname
-# ansible
-ansible training
-cmds:
+ * other:
+	  - sudo firewall-cmd --add-port=80/tcp # allow communication with the port 80 (i.e; httpd)
+	  - sudo systemctl start httpd # to start the httpd service
+	  - sudo systemctl status mariadb # to check the service's status
+
+# Ansible
+    cmds:
 	- ansible all -m apt -a "upgrade=dist" --become --ask-become-pass
 	- ansible all -m apt -a "name=tmux state=latest"
 	- ansible-playbook install_apache.yml --ask-become-pass
 	- ansible all -m gather_facts | grep ansible_dist
-	- sudo firewall-cmd --add-port=80/tcp # allow communication with the port 80 (i.e; httpd)
-	- sudo systemctl start httpd # to start the httpd service
-	- sudo systemctl status mariadb # to check the service's status
+	- ansible-playbook --list-tags site.yml # list all tags used in a playbook
+	- ansible-playbook site.yml --tags "samba,db" --ask-become-pass # run the playbooks having thoses tags

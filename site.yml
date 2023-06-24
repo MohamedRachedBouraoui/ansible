@@ -1,10 +1,9 @@
 ---
-
 - hosts: all
   become: true
-  tasks:
-#  pre_tasks: # we can force some tasks to run before other with this option
+  pre_tasks: # we can force some tasks to run before other ones with this option
   - name: Install updates (Ubuntu)
+    tags: always # this tags is used to always run the play
     when: ansible_distribution == "Ubuntu" # ths 'ansible_distribution' var, commes from the 'gather_facts' step
     apt:
       upgrade: dist
@@ -15,6 +14,7 @@
   become: true
   tasks:
   - name: Install apache & php packages
+    tags: apache,apache2,ubuntu
     when: ansible_distribution == "Ubuntu"
     package: # this module will use the correct package manager depending of the guet'OS  (i.e Ubuntu=> apt, CentOs=>dnf)
         name:
@@ -28,6 +28,7 @@
   become: true
   tasks:
   - name: install mariadb package
+    tags: db,mariadb,ubuntu
     apt:
         name: mariadb-server
         state: latest
@@ -37,6 +38,7 @@
   become: true
   tasks:
   - name: install samba package
+    tags: samba
     package: # i use package to handle diff linux dist
         name: samba
         state: latest
