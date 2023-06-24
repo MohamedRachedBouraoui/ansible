@@ -4,41 +4,15 @@
   become: true
   tasks:
 
-  - name: Update repo index
-    apt:
-      update_cache: yes
-    when: ansible_distribution == "Ubuntu2"
+  - name: Install apache & php packages
+#    apt:
+    package: # this module will use the correct package manager depending of the guet'OS  (i.e Ubuntu=> apt, CentOs=>dnf)
+        name:
+             - "{{ apache_package }}" # this is a variable
+             - "{{ php_package }}"
+        state: latest
+        update_cache: yes
+#    when: ansible_distribution == "Ubuntu"
 #   when: ansible_distribution in ["Debian","Ubuntu"] # for multi-dist types
 # ths 'ansible_distribution' var, commes from the 'gather_facts' step
 
-  - name: Install apache2 package
-    apt:
-     name: apache2
-     state: latest
-    when: ansible_distribution == "Ubuntu"
-
-  - name: Add php support for apache
-    apt:
-     name: libapache2-mod-php
-     state: latest
-    when: ansible_distribution == "Ubuntu"
-
-
-### CentOs ###
-
-  - name: Update repo index
-    dnf:
-      update_cache: yes
-    when: ansible_distribution == "CentOs"
-
-  - name: Install php package
-    dnf:
-     name: httpd
-     state: latest
-    when: ansible_distribution == "CentOs"
-
-  - name: Add php support for apache
-    dnf:
-     name: php
-     state: latest
-    when: ansible_distribution == "CentOs"

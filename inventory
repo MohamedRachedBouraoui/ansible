@@ -1,1 +1,1 @@
-rached@192.168.2.251
+rached@192.168.2.251 apache_package=apache2 php_package=libapache2-mod-php
