@@ -67,6 +67,50 @@
        name: mariadb
        state: latest
 
+  - name: Install apache & php packages in centOs to showcase the !! service managment !!
+    tags: apache,httpd,centos
+    when: ansible_distribution == "CentOS"
+    dnf:
+        name:
+             - httpd
+             - php
+        state: latest
+
+  - name: Start httpd (Centos !!!)
+    tags: apache,httpd,centos
+    when: ansible_distribution == "CentOS"
+    service:
+        name: httpd
+        state: started
+        enabled: yes
+    
+
+  - name: Copy index html file for site (Centos !!!)
+    tags: apache,apache2,httpd,centos
+    when: ansible_distribution == "CentOS"
+    copy:
+        src: my_index.html ## NOte: the file 'my_index.html' exists under the dir named "files", but we don't add it in the 'src' because it is assumed
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: 0644
+
+  - name: Change e-mail address for domain # it's just to demonstrate the 'lineinfile' module: we'll use a regexp to look for the line starting with 'ServerAdmin' in the httpd's config file and replace it
+    tags: apache,apache2,httpd,centos
+    when: ansible_distribution == "CentOS"
+    lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      regexp: '^ServerAdmin'
+      line: ServerAdmin somebody@somewhere.net
+    register: the_actual_httpd_status # we'll store the new state of the conf file in the 'the_actual_httpd_status' and use when it becomed = 'changed' (see next play)
+
+  - name: Restart httpd (CentOS Only !!)
+    tags: apache,apache2,httpd,centos
+    when: the_actual_httpd_status.changed # if true then we'll restart the httpd service because we've modified it's conf in the previous play !!
+    service:
+      name: httpd
+      state: restarted
+
 - hosts: file_servers
   become: true
   tasks:

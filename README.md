@@ -28,7 +28,7 @@
 	  - sudo nano /etc/hosts  
 	  - add the vm ip  and a hostname
  * other:
-	  - sudo firewall-cmd --add-port=80/tcp # allow communication with the port 80 (i.e; httpd)
+	  - !!! NOTE !!!:  for centos: cmd sudo firewall-cmd --add-port=80/tcp # allow communication with the port 80 (i.e; httpd)
 	  - sudo systemctl start httpd # to start the httpd service
 	  - sudo systemctl status mariadb # to check the service's status
 
