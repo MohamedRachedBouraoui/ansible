@@ -1,0 +1,5 @@
+- name: install samba package
+  tags: samba
+  package: # i use package to handle diff linux dist
+        name: samba
+        state: latest

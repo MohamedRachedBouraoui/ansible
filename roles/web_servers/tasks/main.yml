@@ -1,0 +1,49 @@
+- name: Install apache & php packages (Ubuntu)
+  tags: apache,apache2,ubuntu
+  when: ansible_distribution == "Ubuntu"
+  package:
+        name:
+             - apache2
+             - libapache2-mod-php
+        state: latest
+
+- name: Copy index html file for site (Ubuntu)
+  tags: apache,apache2,httpd,ubuntu
+  when: ansible_distribution == "Ubuntu"
+  copy:
+        src: my_index.html
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: 0644
+
+
+- name: Install apache & php packages in centOs to showcase the !! service managment !!
+  tags: apache,httpd,centos
+  when: ansible_distribution == "CentOS"
+  dnf:
+      name:
+           - httpd
+           - php
+      state: latest
+
+
+- name: Start httpd (Centos !!!)
+  tags: apache,httpd,centos
+  when: ansible_distribution == "CentOS"
+  service:
+        name: httpd
+        state: started
+        enabled: yes
+
+
+- name: Copy index html file for site (Centos !!!)
+  tags: apache,apache2,httpd,centos
+  when: ansible_distribution == "CentOS"
+  copy:
+        src: my_index.html
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: 0644
+

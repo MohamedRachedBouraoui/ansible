@@ -1,0 +1,130 @@
+---
+- hosts: all
+  become: true # to become a root user
+  pre_tasks: # we can force some tasks to run before other ones with this option
+  - name: Update repo cache (CentOS)
+    tags: always
+    when: ansible_distribution == "CentOS"
+    dnf:
+       update_cache: yes
+    changed_when: false # with this option in place, even if the host's cache is updated, we don't want to see the "changed = 1"  in the final log of ansible (a cleaner output at then end of ansible execution)
+
+  - name: Update repo cache (Ubuntu)
+    tags: always # this tags is used to always run the play
+    when: ansible_distribution == "Ubuntu" # ths 'ansible_distribution' var, commes from the 'gather_facts' step
+    apt:
+      update_cache: yes
+    changed_when: false # with this option in place, even if the host's cache is updated, we don't want to see the "changed = 1"  in the final log of ansible
+
+###### the next plays will allow to the user "simone", created by the "bootstrap.yml" playbook, to login without password or passphrase using the ansible ssh-pub-key
+  ## NOTE: this play is here so we can use new pub keys or set the state to "absent" if we need to delete it in case it was hacked
+  - name: Add ssh key for Simone
+    tags: always # this tags is used to always run the play 
+    authorized_key:
+        user: simone
+        key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK7U/HWxe0ybg/4th3K/IjIwJ1x5czj4V2iNcI62tGl7 ansible" # comes from cat ~/.ssh/ansible.pub
+
+
+- hosts: workstations # this will install terraform in the workstation vm (i.e sort of my local machine )
+# NB: I must copy the ansible public key to the localvm ( ssh-copy-id -i ~/.ssh/ansible.pub mrb@vm-ubuntu-workstation)
+  become: true
+  tasks:
+  - name: Install unzip
+    package:
+        name: unzip
+
+  - name: Install terraform
+    unarchive: # this is why we installed unzip !
+        remote_src: yes
+        src: https://releases.hashicorp.com/terraform/0.12.28/terraform_0.12.28_linux_amd64.zip
+        dest: /usr/local/bin
+        owner: root
+        group: root
+        mode: 0755
+
+- hosts: web_servers # value from the inventory file
+  become: true
+  tasks:
+  - name: Install apache & php packages
+    tags: apache,apache2,ubuntu
+    when: ansible_distribution == "Ubuntu"
+    package: # this module will use the correct package manager depending of the guet'OS  (i.e Ubuntu=> apt, CentOs=>dnf)
+        name:
+             - "{{ apache_package }}" # this is a variable from the inventory file
+             - "{{ php_package }}"
+        state: latest
+
+  - name: Copy index html file for site
+    tags: apache,apache2,httpd,ubuntu
+    copy:
+        src: my_index.html ## NOte: the file 'my_index.html' exists under the dir named "files", but we don't add it in the 'src' because it is assumed
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: 0644
+    when: ansible_distribution == "Ubuntu"
+# when: ansible_distribution == "Ubuntu"
+# when: ansible_distribution in ["Debian","Ubuntu"] # for multi-dist types
+
+- hosts: db_servers
+  become: true
+  tasks:
+  - name: install mariadb package
+    when: ansible_distribution == "CentOS"
+    tags: db,mariadb,centos
+    dnf:
+       name: mariadb
+       state: latest
+
+  - name: Install apache & php packages in centOs to showcase the !! service managment !!
+    tags: apache,httpd,centos
+    when: ansible_distribution == "CentOS"
+    dnf:
+        name:
+             - httpd
+             - php
+        state: latest
+
+  - name: Start httpd (Centos !!!)
+    tags: apache,httpd,centos
+    when: ansible_distribution == "CentOS"
+    service:
+        name: httpd
+        state: started
+        enabled: yes
+    
+
+  - name: Copy index html file for site (Centos !!!)
+    tags: apache,apache2,httpd,centos
+    when: ansible_distribution == "CentOS"
+    copy:
+        src: my_index.html ## NOte: the file 'my_index.html' exists under the dir named "files", but we don't add it in the 'src' because it is assumed
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: 0644
+
+  - name: Change e-mail address for domain # it's just to demonstrate the 'lineinfile' module: we'll use a regexp to look for the line starting with 'ServerAdmin' in the httpd's config file and replace it
+    tags: apache,apache2,httpd,centos
+    when: ansible_distribution == "CentOS"
+    lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      regexp: '^ServerAdmin'
+      line: ServerAdmin somebody@somewhere.net
+    register: the_actual_httpd_status # we'll store the new state of the conf file in the 'the_actual_httpd_status' and use when it becomed = 'changed' (see next play)
+
+  - name: Restart httpd (CentOS Only !!)
+    tags: apache,apache2,httpd,centos
+    when: the_actual_httpd_status.changed # if true then we'll restart the httpd service because we've modified it's conf in the previous play !!
+    service:
+      name: httpd
+      state: restarted
+
+- hosts: file_servers
+  become: true
+  tasks:
+  - name: install samba package
+    tags: samba
+    package: # i use package to handle diff linux dist
+        name: samba
+        state: latest

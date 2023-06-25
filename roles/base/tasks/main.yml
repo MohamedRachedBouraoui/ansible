@@ -1,0 +1,8 @@
+# The next plays will allow to the user "simone", created by the "bootstrap.yml" playbook
+# NOTE: this play is here so we can use new pub keys or set the state to "absent" 
+#if we need to delete it
+- name: Add ssh key for Simone
+  authorized_key:
+   user: simone
+   key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK7U/HWxe0ybg/4th3K/IjIwJ1x5czj4V2iNcI62tGl7 ansible"
+
