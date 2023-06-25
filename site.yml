@@ -2,19 +2,28 @@
 - hosts: all
   become: true # to become a root user
   pre_tasks: # we can force some tasks to run before other ones with this option
-  - name: install updates (CentOS)
+  - name: Update repo cache (CentOS)
     tags: always
     when: ansible_distribution == "CentOS"
     dnf:
-       update_only: yes
        update_cache: yes
+    changed_when: false # with this option in place, even if the host's cache is updated, we don't want to see the "changed = 1"  in the final log of ansible (a cleaner output at then end of ansible execution)
 
-  - name: Install updates (Ubuntu)
+  - name: Update repo cache (Ubuntu)
     tags: always # this tags is used to always run the play
     when: ansible_distribution == "Ubuntu" # ths 'ansible_distribution' var, commes from the 'gather_facts' step
     apt:
-      upgrade: dist
       update_cache: yes
+    changed_when: false # with this option in place, even if the host's cache is updated, we don't want to see the "changed = 1"  in the final log of ansible
+
+###### the next plays will allow to the user "simone", created by the "bootstrap.yml" playbook, to login without password or passphrase using the ansible ssh-pub-key
+  ## NOTE: this play is here so we can use new pub keys or set the state to "absent" if we need to delete it in case it was hacked
+  - name: Add ssh key for Simone
+    tags: always # this tags is used to always run the play 
+    authorized_key:
+        user: simone
+        key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK7U/HWxe0ybg/4th3K/IjIwJ1x5czj4V2iNcI62tGl7 ansible" # comes from cat ~/.ssh/ansible.pub
+
 
 - hosts: workstations # this will install terraform in the workstation vm (i.e sort of my local machine )
 # NB: I must copy the ansible public key to the localvm ( ssh-copy-id -i ~/.ssh/ansible.pub mrb@vm-ubuntu-workstation)

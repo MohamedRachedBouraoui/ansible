@@ -1,0 +1,38 @@
+---
+- hosts: all
+  become: true # to become a root user
+  pre_tasks: # we can force some tasks to run before other ones with this option
+  - name: install updates (CentOS)
+    tags: always
+    when: ansible_distribution == "CentOS"
+    dnf:
+       update_only: yes
+       update_cache: yes
+
+  - name: Install updates (Ubuntu)
+    tags: always # this tags is used to always run the play
+    when: ansible_distribution == "Ubuntu" # ths 'ansible_distribution' var, commes from the 'gather_facts' step
+    apt:
+      upgrade: dist
+      update_cache: yes
+
+###### the next plays will allow to the user "simone" to login without password or passphrase using the ansible ssh-pub-key
+  - name: Create Simone User
+    tags: always # this tags is used to always run the play
+    user:
+      name: simone
+      groups: root
+
+  - name: Add ssh key for Simone
+    tags: always # this tags is used to always run the play 
+    authorized_key:
+        user: simone
+        key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK7U/HWxe0ybg/4th3K/IjIwJ1x5czj4V2iNcI62tGl7 ansible" # comes from cat ~/.ssh/ansible.pub
+
+  - name: Add sudoers file for Simone
+    tags: always # this tags is used to always run the play 
+    copy:
+      src: sudoer_simone
+      dest: /etc/sudoers.d/simone
+      owner: root
+      group: root

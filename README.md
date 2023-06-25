@@ -40,3 +40,6 @@
 	- ansible all -m gather_facts | grep ansible_dist
 	- ansible-playbook --list-tags site.yml # list all tags used in a playbook
 	- ansible-playbook site.yml --tags "samba,db" --ask-become-pass # run the playbooks having thoses tags
+	- after using the simone user to guests machines, i was able to connect to those ones without password/passphrase (cmd: ssh -i ~/.ssh/ansible simone@vm-ubuntu-workstation)
+and execute all sudo cmds without passwd !!!
+	- in the ./ansible.cfg file, i added the "remote_user = simone" line, so we'll be able to run the "ansible-playbook" cmd without the "--ask-become-pass" option
