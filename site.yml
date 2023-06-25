@@ -2,6 +2,13 @@
 - hosts: all
   become: true # to become a root user
   pre_tasks: # we can force some tasks to run before other ones with this option
+  - name: install updates (CentOS)
+    tags: always
+    when: ansible_distribution == "CentOS"
+    dnf:
+       update_only: yes
+       update_cache: yes
+
   - name: Install updates (Ubuntu)
     tags: always # this tags is used to always run the play
     when: ansible_distribution == "Ubuntu" # ths 'ansible_distribution' var, commes from the 'gather_facts' step
@@ -54,12 +61,11 @@
   become: true
   tasks:
   - name: install mariadb package
-    tags: db,mariadb,ubuntu
-    apt:
-        name: mariadb-server
-        state: latest
-    when: ansible_distribution == "Ubuntu"
-
+    when: ansible_distribution == "CentOS"
+    tags: db,mariadb,centos
+    dnf:
+       name: mariadb
+       state: latest
 
 - hosts: file_servers
   become: true
