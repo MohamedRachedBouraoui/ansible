@@ -1,49 +1,45 @@
-- name: Install apache & php packages (Ubuntu)
-  tags: apache,apache2,ubuntu
-  when: ansible_distribution == "Ubuntu"
+- name: Install apache & php packages
+  tags: apache,httpd,php
   package:
         name:
-             - apache2
-             - libapache2-mod-php
+             - "{{ apache_package_name }}"
+             - "{{ php_package_name }}"
         state: latest
 
-- name: Copy index html file for site (Ubuntu)
-  tags: apache,apache2,httpd,ubuntu
-  when: ansible_distribution == "Ubuntu"
-  copy:
-        src: my_index.html
-        dest: /var/www/html/index.html
-        owner: root
-        group: root
-        mode: 0644
 
-
-- name: Install apache & php packages in centOs to showcase the !! service managment !!
-  tags: apache,httpd,centos
-  when: ansible_distribution == "CentOS"
-  dnf:
-      name:
-           - httpd
-           - php
-      state: latest
-
-
-- name: Start httpd (Centos !!!)
-  tags: apache,httpd,centos
+- name: Start and enable apache service
+  tags: apache,httpd
   when: ansible_distribution == "CentOS"
   service:
-        name: httpd
+        name: "{{ apache_service }}"
         state: started
         enabled: yes
 
 
-- name: Copy index html file for site (Centos !!!)
-  tags: apache,apache2,httpd,centos
+- name: Change e-mail address for domain # it's just to demonstrate the 'lineinfile' module: we'll use a regexp to look for the line starting with 'ServerAdmin' in the httpd's config file and replace it
+  tags: apache,httpd,centos
   when: ansible_distribution == "CentOS"
+  lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      regexp: '^ServerAdmin'
+      line: ServerAdmin somebody@somewhere.com
+  notify: restart_apache # we used 'notify' in place of 'register' created in the "roles/web_servers/handlers/main.yml"
+  # register: the_actual_apache_status # we'll store the new state of the conf file in the 'the_actual_apache_status' and use when it becomed = 'changed' (see next play)
+## NOTE: we'll replace the 'register' module by "notify" wich is a handler. This'll allows us to remove the next play all together !
+
+#- name: Restart httpd
+#  tags: apache,httpd
+#  when: the_actual_apache_status.changed # if true then we'll restart the httpd service because we've modified it's conf in the previous play !!
+#  service:
+#      name: "{{ apache_service }}"
+#      state: restarted
+
+
+- name: Copy index html file for site
+  tags: apache,apache2,httpd
   copy:
         src: my_index.html
         dest: /var/www/html/index.html
         owner: root
         group: root
         mode: 0644
-
